@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Auracle mark — stylized flame / "A" -->
+  <path d="M16 3 L29 27 L22 27 L16 16 L10 27 L3 27 Z"
+        fill="#fff" />
+  <path d="M16 11 L21 21 L11 21 Z"
+        fill="#10b981" />
+</svg>

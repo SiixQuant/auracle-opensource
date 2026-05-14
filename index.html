@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auracle Open Source — self-hosted time-series research toolkit</title>
+  <meta name="description" content="An open-source, self-hosted toolkit for backtesting, historical simulation, and time-series research. Python CLI + JupyterLab + web UI. Runs on your own hardware. Research and simulation only." />
+
+  <!-- Open Graph / Twitter for link previews -->
+  <meta property="og:title" content="Auracle Open Source — self-hosted time-series research" />
+  <meta property="og:description" content="Open-source toolkit for backtesting, historical simulation, and quantitative research. Research and simulation only — not a trading platform." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://opensource.auracle.dev/" />
+  <meta property="og:site_name" content="Auracle Open Source" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Auracle Open Source" />
+  <meta name="twitter:description" content="Open-source self-hosted research engine for time-series data. Backtesting + simulation only." />
+
+  <link rel="icon" type="image/svg+xml" href="/assets/auracle-mark.svg" />
+
+  <!-- Brand fonts — Inter UI, JetBrains Mono code -->
+  <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=inter:300,400,500,600|jetbrains-mono:400,500&display=swap">
+
+  <style>
+    :root {
+      /* Match the main Auracle marketing palette so the open-source
+         site reads as the same brand — only the messaging shifts. */
+      --bg:        #000000;
+      --panel:     rgba(255, 255, 255, 0.02);
+      --panel-2:   rgba(255, 255, 255, 0.04);
+      --border:    rgba(255, 255, 255, 0.10);
+      --border-2:  rgba(255, 255, 255, 0.18);
+      --fg:        #ffffff;
+      --muted:     rgba(255, 255, 255, 0.65);
+      --muted-2:   rgba(255, 255, 255, 0.42);
+      --accent:    #10b981;
+      --accent-2:  #34d399;
+      --accent-bg: rgba(16, 185, 129, 0.10);
+
+      --max:       1100px;
+      --s-1:       4px;
+      --s-2:       8px;
+      --s-3:       12px;
+      --s-4:       16px;
+      --s-5:       24px;
+      --s-6:       32px;
+      --s-7:       48px;
+      --s-8:       64px;
+
+      --font-ui:   'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
+    body {
+      font-family: var(--font-ui);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-2); }
+    code, .mono { font-family: var(--font-mono); }
+
+    /* ── Top nav ─────────────────────────────────────────────── */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--s-4) var(--s-5);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 500; color: var(--fg); }
+    .brand img { width: 22px; height: 22px; }
+    .brand .tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      margin-left: 4px;
+    }
+    .topbar nav { display: flex; align-items: center; gap: 22px; font-size: 14px; color: var(--muted); }
+    .topbar nav a:hover { color: var(--fg); }
+    .topbar nav .pill {
+      padding: 6px 14px;
+      border: 1px solid var(--border-2);
+      border-radius: 999px;
+      color: var(--fg);
+    }
+    .topbar nav .pill:hover { background: var(--accent-bg); border-color: var(--accent); }
+    @media (max-width: 720px) {
+      .topbar nav a:not(.pill) { display: none; }
+    }
+
+    /* ── Layout primitives ──────────────────────────────────── */
+    .section { max-width: var(--max); margin: 0 auto; padding: var(--s-8) var(--s-5); }
+    .mono-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted-2);
+      margin-bottom: var(--s-4);
+    }
+    h1, h2, h3 { margin: 0 0 var(--s-3); letter-spacing: -0.01em; font-weight: 500; }
+    h1 { font-size: 48px; line-height: 1.1; letter-spacing: -0.02em; }
+    h2 { font-size: 32px; line-height: 1.2; }
+    h3 { font-size: 18px; }
+    p  { margin: 0 0 var(--s-3); color: var(--muted); }
+    .lede { font-size: 18px; color: var(--muted); max-width: 64ch; }
+    @media (max-width: 720px) {
+      h1 { font-size: 36px; }
+      h2 { font-size: 26px; }
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-primary { background: var(--accent); color: #04221a; }
+    .btn-primary:hover { background: var(--accent-2); color: #04221a; }
+    .btn-secondary {
+      border: 1px solid var(--border-2);
+      color: var(--fg);
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Hero ────────────────────────────────────────────────── */
+    .hero { padding-top: var(--s-8); padding-bottom: var(--s-8); }
+    .hero h1 .quiet { color: var(--muted); }
+    .hero-ctas { display: flex; flex-wrap: wrap; gap: var(--s-3); margin: var(--s-5) 0 var(--s-4); }
+    .hero-meta { font-size: 13px; color: var(--muted-2); }
+    .hero-meta code { color: var(--muted); padding: 1px 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+
+    /* ── Trust strip ────────────────────────────────────────── */
+    .trust {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+    }
+    .trust-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: var(--s-5);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .trust-inner .dot { color: var(--muted-2); }
+
+    /* ── Feature grid ────────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--s-4);
+      margin-top: var(--s-5);
+    }
+    .card {
+      padding: var(--s-5);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .card:hover { border-color: var(--border-2); background: var(--panel-2); }
+    .card .card-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--s-2);
+    }
+    .card h3 { margin-bottom: var(--s-2); color: var(--fg); }
+    .card p { margin: 0; font-size: 14px; line-height: 1.55; }
+
+    /* ── Workflow ────────────────────────────────────────────── */
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--s-4);
+      margin-top: var(--s-5);
+      counter-reset: step;
+    }
+    .step {
+      padding: var(--s-5);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      counter-increment: step;
+      position: relative;
+    }
+    .step::before {
+      content: counter(step, decimal-leading-zero);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+      display: block;
+      margin-bottom: var(--s-2);
+    }
+    .step h3 { margin-bottom: var(--s-2); font-size: 16px; }
+    .step p { margin: 0; font-size: 14px; }
+
+    /* ── Code snippet ───────────────────────────────────────── */
+    pre {
+      background: #0a0a0a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: var(--s-5);
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.55;
+      margin: var(--s-4) 0;
+      color: var(--fg);
+    }
+    pre code { font-family: var(--font-mono); }
+    pre .c { color: var(--muted-2); }
+    pre .k { color: var(--accent-2); }
+
+    /* ── Compliance callout ─────────────────────────────────── */
+    .compliance {
+      border: 1px solid var(--border-2);
+      border-radius: 12px;
+      padding: var(--s-5);
+      background: var(--panel);
+      margin-top: var(--s-5);
+    }
+    .compliance .mono-label { margin-bottom: var(--s-3); color: var(--accent); }
+    .compliance ul { margin: var(--s-3) 0 0 var(--s-4); padding: 0; color: var(--muted); }
+    .compliance li { margin-bottom: var(--s-2); font-size: 14px; }
+    .compliance li strong { color: var(--fg); font-weight: 500; }
+
+    /* ── FAQ ────────────────────────────────────────────────── */
+    .faq details {
+      border-bottom: 1px solid var(--border);
+      padding: var(--s-4) 0;
+    }
+    .faq details:first-of-type { border-top: 1px solid var(--border); }
+    .faq summary {
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--fg);
+      font-size: 16px;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .faq summary::after {
+      content: "+";
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 18px;
+      transition: transform 0.15s;
+    }
+    .faq details[open] summary::after { content: "−"; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq details p {
+      margin: var(--s-3) 0 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    /* ── Footer ─────────────────────────────────────────────── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: var(--s-7) var(--s-5);
+      text-align: center;
+      color: var(--muted-2);
+      font-size: 13px;
+    }
+    .footer a { color: var(--muted); }
+    .footer a:hover { color: var(--fg); }
+    .footer .disclaimer { max-width: 64ch; margin: var(--s-4) auto 0; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<!-- ── TOP NAV ───────────────────────────────────────────── -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="#top" class="brand">
+      <img src="/assets/auracle-mark.svg" alt="" />
+      Auracle <span class="tag">open source</span>
+    </a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#workflow">Workflow</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/SiixQuant/auracle-installer"
+         target="_blank" rel="noopener">GitHub &nearr;</a>
+      <a href="https://github.com/SiixQuant/auracle-installer"
+         target="_blank" rel="noopener" class="pill">Install</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── HERO ──────────────────────────────────────────────── -->
+<section class="section hero" id="top">
+  <p class="mono-label">[ Auracle / open-source / v2.1 ]</p>
+  <h1>
+    Self-hosted research toolkit<br />
+    <span class="quiet">for time-series data.</span>
+  </h1>
+  <p class="lede">
+    Backtest, simulate, and analyze historical market data on hardware you control.
+    Python CLI, JupyterLab integration, and a web UI for managing simulation runs.
+    Open-source. Self-hosted. Research and simulation only.
+  </p>
+  <div class="hero-ctas">
+    <a class="btn btn-primary"
+       href="https://github.com/SiixQuant/auracle-installer"
+       target="_blank" rel="noopener">
+      Install free &rarr;
+    </a>
+    <a class="btn btn-secondary"
+       href="https://github.com/SiixQuant/auracle-installer"
+       target="_blank" rel="noopener">
+      Browse on GitHub &nearr;
+    </a>
+  </div>
+  <p class="hero-meta">
+    One-line install. Pre-built Docker images. <code>~3 minutes</code> from <code>curl</code> to a running research environment.
+  </p>
+</section>
+
+<!-- ── TRUST STRIP ────────────────────────────────────────── -->
+<div class="trust">
+  <div class="trust-inner">
+    <span class="mono" style="color:var(--muted-2)">[ built on ]</span>
+    <span>Python</span>            <span class="dot">·</span>
+    <span>JupyterLab</span>        <span class="dot">·</span>
+    <span>PostgreSQL</span>        <span class="dot">·</span>
+    <span>TimescaleDB</span>       <span class="dot">·</span>
+    <span>Docker</span>            <span class="dot">·</span>
+    <span>pandas</span>            <span class="dot">·</span>
+    <span>NumPy</span>
+  </div>
+</div>
+
+<!-- ── WHAT IT IS ─────────────────────────────────────────── -->
+<section class="section">
+  <p class="mono-label">[ The product ]</p>
+  <h2>A research engine, not a trading product.</h2>
+  <p class="lede">
+    Auracle Open Source is a developer toolkit for quantitative research. You hand it
+    historical market data; it gives you a vectorized backtest engine, a walk-forward
+    cross-validation harness, statistical tooling, and three interchangeable interfaces
+    (notebook, CLI, web UI) for driving them. Everything runs locally on Docker; nothing
+    leaves your machine.
+  </p>
+  <p class="lede">
+    It's the substrate professional quants use to test hypotheses before committing
+    them to live capital somewhere else. It is not, by itself, a trading platform.
+  </p>
+</section>
+
+<!-- ── FEATURE GRID ────────────────────────────────────────── -->
+<section class="section" id="features">
+  <p class="mono-label">[ Features ]</p>
+  <h2>What you get.</h2>
+  <p class="lede">
+    The open-source distribution ships every research-side capability the platform has —
+    no feature gating, no per-call quotas, no usage metering.
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-label">→ engine</div>
+      <h3>Vectorized backtest engine</h3>
+      <p>
+        Run a strategy against years of daily or intraday bars in seconds. Compute
+        portfolio returns, signal/weight/position lineage, and the standard stats
+        (Sharpe, Sortino, Calmar, max drawdown, win rate, profit factor) directly.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-label">→ walkforward</div>
+      <h3>Walk-forward cross-validation</h3>
+      <p>
+        Rolling-window train/test splits with the same API as a single backtest.
+        Out-of-sample stats per fold, with overfit detection signals (parameter
+        sensitivity, OOS Sharpe degradation, regime stability).
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-label">→ notebooks</div>
+      <h3>JupyterLab integration</h3>
+      <p>
+        Bundled JupyterLab with the platform pre-installed. Import
+        <code>auracle.backtest</code> and you're researching. Walk-through notebooks
+        included. Bring your own pandas/NumPy code — no DSL.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-label">→ cli</div>
+      <h3>Python CLI</h3>
+      <p>
+        <code>auracle backtest run …</code>, <code>auracle walkforward …</code>,
+        <code>auracle ingest …</code>. Scriptable for batch experiments;
+        emits JSON for piping into your own analysis tooling.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-label">→ web ui</div>
+      <h3>Browser-based review surface</h3>
+      <p>
+        Houston, the bundled web UI, lets you browse historical runs, compare equity
+        curves, sort by Sharpe, and export to CSV. Useful when you'd rather click
+        through results than load a notebook.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-label">→ data</div>
+      <h3>Bring-your-own data</h3>
+      <p>
+        Bundled adapters for free public sources (yfinance) plus optional adapters
+        for paid providers you bring keys for. Data lives in your local Postgres
+        + TimescaleDB. Nothing is sent to a vendor.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-label">→ stats</div>
+      <h3>Statistical toolkit</h3>
+      <p>
+        Drawdown analysis, rolling-window stats, regime detection, factor decomposition,
+        and the seven overfit signals from the Lopez de Prado literature — implemented
+        as plain Python functions you can call from any notebook.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-label">→ self-hosted</div>
+      <h3>You own the install</h3>
+      <p>
+        Pre-built Docker Compose stack. Pull the images, run
+        <code>docker compose up</code>, you're done. No accounts, no cloud calls,
+        no usage caps, no telemetry by default.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ── WORKFLOW ────────────────────────────────────────────── -->
+<section class="section" id="workflow">
+  <p class="mono-label">[ Workflow ]</p>
+  <h2>From install to first backtest, in four steps.</h2>
+  <p class="lede">
+    No accounts. No keys. The default install ships with bundled example strategies and
+    free-tier data adapters so you can run something useful within minutes.
+  </p>
+
+  <div class="workflow">
+    <div class="step">
+      <h3>Install</h3>
+      <p>One-line Docker install. Three minutes from <code>curl</code> to a running stack on your hardware.</p>
+    </div>
+    <div class="step">
+      <h3>Ingest</h3>
+      <p>Pull historical bars from a free provider (yfinance) or paste keys for a paid one you already have.</p>
+    </div>
+    <div class="step">
+      <h3>Research</h3>
+      <p>Open JupyterLab, write a Strategy class, run <code>run_backtest()</code>. See Sharpe, equity curve, fills.</p>
+    </div>
+    <div class="step">
+      <h3>Iterate</h3>
+      <p>Walk-forward the result. Adjust parameters. Compare equity curves in Houston. Export as CSV for further work.</p>
+    </div>
+  </div>
+
+  <pre><code><span class="c"># A minimal Auracle strategy — 12 lines, pure Python.</span>
+<span class="k">from</span> auracle.backtest <span class="k">import</span> Strategy, run_backtest
+<span class="k">from</span> auracle.db <span class="k">import</span> get_engine
+
+<span class="k">class</span> MACrossover(Strategy):
+    universe = [(<span class="k">"SPY"</span>, <span class="k">"NYSE"</span>)]
+
+    <span class="k">def</span> prices_to_signals(self, prices):
+        fast = prices.rolling(20).mean()
+        slow = prices.rolling(60).mean()
+        <span class="k">return</span> (fast &gt; slow).astype(int)
+
+result = run_backtest(get_engine(), MACrossover)
+print(f<span class="k">"Sharpe: {result.sharpe:.2f}  |  MaxDD: {result.max_drawdown:.1%}"</span>)
+<span class="c"># Sharpe: 0.65  |  MaxDD: -28.9%</span></code></pre>
+</section>
+
+<!-- ── OPEN SOURCE ────────────────────────────────────────── -->
+<section class="section">
+  <p class="mono-label">[ Open source ]</p>
+  <h2>Auditable. Forkable. Yours.</h2>
+  <p class="lede">
+    The installer, the client SDK, and the documentation are all on GitHub. You can read every
+    line of the install script before running it, fork it, change it, redistribute it. The runtime
+    images ship as pre-built Docker layers so customers don't have to rebuild a 7&nbsp;GB JupyterLab
+    image, but the source generating those images is the same code in the repo.
+  </p>
+  <div style="display:flex;flex-wrap:wrap;gap:var(--s-3);margin-top:var(--s-4)">
+    <a class="btn btn-secondary" target="_blank" rel="noopener"
+       href="https://github.com/SiixQuant/auracle-installer">auracle-installer &nearr;</a>
+    <a class="btn btn-secondary" target="_blank" rel="noopener"
+       href="https://github.com/SiixQuant/auracle-client">auracle-client &nearr;</a>
+  </div>
+</section>
+
+<!-- ── COMPLIANCE / SCOPE ─────────────────────────────────── -->
+<section class="section">
+  <div class="compliance">
+    <p class="mono-label">[ Product scope ]</p>
+    <h3 style="margin-bottom:var(--s-3)">What Auracle Open Source is — and isn't.</h3>
+    <p style="color:var(--muted)">
+      Auracle Open Source is a research and simulation toolkit for time-series data.
+      The clearest framing of the scope:
+    </p>
+    <ul>
+      <li><strong>Auracle Open Source is</strong> a self-hosted Docker stack for backtesting
+        strategies against historical data, running walk-forward cross-validations,
+        and computing portfolio statistics in Python.</li>
+      <li><strong>Auracle Open Source is not</strong> a trading platform, a broker,
+        a robo-advisor, a signal-selling service, or an investment-advisory product.</li>
+      <li><strong>Auracle Open Source does not</strong> connect to brokers, place orders,
+        manage portfolios, or provide financial advice. It runs on your hardware and
+        only sees the historical data you give it.</li>
+      <li><strong>Auracle Open Source produces</strong> simulated, hypothetical
+        performance numbers from historical data only. Past performance is not
+        indicative of future results.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ── FAQ ────────────────────────────────────────────────── -->
+<section class="section faq" id="faq">
+  <p class="mono-label">[ FAQ ]</p>
+  <h2>Frequently asked.</h2>
+
+  <details>
+    <summary>Is this actually open source?</summary>
+    <p>
+      The installer, client SDK, EULA, and the documentation site are all in public
+      repositories under SiixQuant on GitHub. The runtime container images are
+      distributed as pre-built Docker layers under a permissive license that allows
+      self-hosting, modification, and redistribution — see the LICENSE file in the
+      installer repo for the exact terms.
+    </p>
+  </details>
+
+  <details>
+    <summary>Does Auracle Open Source connect to brokers or place trades?</summary>
+    <p>
+      No. This distribution is a research and simulation environment only. It reads
+      historical data, runs backtests in memory, and writes results to a local
+      Postgres database. It does not authenticate to brokers, generate signals for
+      live execution, or place orders of any kind.
+    </p>
+  </details>
+
+  <details>
+    <summary>What does running it actually look like?</summary>
+    <p>
+      You install Docker, run a single <code>curl … | bash</code> from the installer
+      repo, and three minutes later you have JupyterLab, a Python CLI, and a web UI
+      running on your machine. From there you import historical data (free yfinance
+      adapter included), write or import a Strategy class, and call
+      <code>run_backtest()</code>. Everything is local.
+    </p>
+  </details>
+
+  <details>
+    <summary>Where does my data live?</summary>
+    <p>
+      In a Postgres + TimescaleDB container on your machine. There is no remote
+      sync, no cloud backup, no telemetry by default. If you delete the
+      <code>~/auracle/data/</code> directory, the data is gone.
+    </p>
+  </details>
+
+  <details>
+    <summary>Do I need to be a Python expert?</summary>
+    <p>
+      Comfortable with pandas DataFrames is enough. A minimal Strategy is ~12 lines
+      (see the example above). Bundled walk-through notebooks cover common patterns:
+      moving-average crossovers, mean reversion, momentum, regime detection.
+    </p>
+  </details>
+
+  <details>
+    <summary>What hardware do I need?</summary>
+    <p>
+      Minimum: 4 CPU, 8&nbsp;GB RAM, 50&nbsp;GB SSD. Comfortable: 8 CPU, 16&nbsp;GB RAM,
+      200&nbsp;GB SSD. The JupyterLab image is the heaviest dependency at ~3.5&nbsp;GB;
+      everything else is light.
+    </p>
+  </details>
+
+  <details>
+    <summary>How is this different from running a Jupyter notebook with pandas?</summary>
+    <p>
+      You could do that. What Auracle adds is: a tested vectorized backtest engine
+      with consistent stats; a walk-forward harness; a TimescaleDB-backed bar store
+      that scales past pandas' in-memory limits; a CLI for batch runs; and a web UI
+      for browsing and comparing historical results without re-opening a notebook
+      every time.
+    </p>
+  </details>
+
+  <details>
+    <summary>Is there a commercial version with more features?</summary>
+    <p>
+      A separate commercial Auracle distribution exists under its own brand and
+      compliance review. This site does not describe it; the commercial version
+      ships under its own terms, its own pricing, and its own product positioning.
+    </p>
+  </details>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────────── -->
+<footer class="footer">
+  <p>
+    <a href="https://github.com/SiixQuant/auracle-installer"
+       target="_blank" rel="noopener">GitHub</a>
+    &middot;
+    <a href="mailto:support@auracle.dev">support@auracle.dev</a>
+  </p>
+  <p class="disclaimer">
+    Auracle Open Source is a research and simulation toolkit for historical
+    time-series data. It is not a trading platform, broker, or investment-advisory
+    service. Simulated, hypothetical results do not represent actual returns
+    and are not indicative of future performance. By using this software you
+    agree to the terms in the LICENSE file shipped with each release.
+  </p>
+</footer>
+
+</body>
+</html>
